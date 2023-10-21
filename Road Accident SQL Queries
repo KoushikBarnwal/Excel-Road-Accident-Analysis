@@ -1,0 +1,126 @@
+SELECT * FROM road_accident;
+
+--KPIs
+--Total Casualties:
+SELECT SUM(number_of_casualties) AS Total_Casualties FROM road_accident;
+
+ 
+--Fatal Casualties:
+SELECT SUM(number_of_casualties) AS Fatal_Casualties
+FROM road_accident
+WHERE accident_severity = 'Fatal';
+
+
+--Serious Casualties:
+SELECT SUM(number_of_casualties) AS Serious_Casualties
+FROM road_accident
+WHERE accident_severity = 'Serious';
+
+ 
+--Slight Casualties:
+SELECT SUM(number_of_casualties) AS Slight_Casualties
+FROM road_accident
+WHERE accident_severity = 'Slight';
+
+ 
+--Casualties by Cars:
+WITH CTE AS(
+SELECT CASE
+		WHEN vehicle_type IN ('Car','Taxi/Private hire car') THEN 'Car'
+		END AS Car,
+		SUM(number_of_casualties) AS Casualties_by_Cars
+FROM road_accident
+WHERE vehicle_type IN ('Car','Taxi/Private hire car')
+GROUP BY 
+CASE
+	WHEN vehicle_type IN ('Car','Taxi/Private hire car') THEN 'Car'
+	END
+	)
+
+SELECT Casualties_by_Cars FROM CTE;
+
+
+
+--Total Casualties by Vehicle Type:
+SELECT 
+	CASE 
+		WHEN vehicle_type IN ('Agricultural vehicle') THEN 'Agricultural'
+		WHEN vehicle_type IN ('Motorcycle 125cc and under','Motorcycle 50cc and under','Pedal cycle','Motorcycle over 125cc and up to 500cc','Motorcycle over 500cc') THEN 'Bike'
+		WHEN vehicle_type IN ('Taxi/Private hire car','Car') THEN 'Car'
+		WHEN vehicle_type IN ('Bus or coach (17 or more pass seats)','Minibus (8 - 16 passenger seats)') THEN 'Bus'
+		WHEN vehicle_type IN ('Goods 7.5 tonnes mgw and over','Van / Goods 3.5 tonnes mgw or under','Goods over 3.5t. and under 7.5t') THEN 'Van'
+		Else 'Other'
+		END AS Vehicles,
+	SUM(number_of_casualties) AS Total_Casualties
+FROM road_accident
+GROUP BY 
+	CASE 
+		WHEN vehicle_type IN ('Agricultural vehicle') THEN 'Agricultural'
+		WHEN vehicle_type IN ('Motorcycle 125cc and under','Motorcycle 50cc and under','Pedal cycle','Motorcycle over 125cc and up to 500cc','Motorcycle over 500cc') THEN 'Bike'
+		WHEN vehicle_type IN ('Taxi/Private hire car','Car') THEN 'Car'
+		WHEN vehicle_type IN ('Bus or coach (17 or more pass seats)','Minibus (8 - 16 passenger seats)') THEN 'Bus'
+		WHEN vehicle_type IN ('Goods 7.5 tonnes mgw and over','Van / Goods 3.5 tonnes mgw or under','Goods over 3.5t. and under 7.5t') THEN 'Van'
+		Else 'Other' 
+END;
+
+
+--CY Casualties by Monthly Trend:
+SELECT DATENAME(MONTH,accident_date) AS Months,
+SUM(number_of_casualties) AS CY_Casualties
+FROM road_accident
+WHERE YEAR(accident_date) = '2022'
+GROUP BY DATENAME(MONTH,accident_date);
+
+
+--PY Casualties by Monthly Trend:
+SELECT DATENAME(MONTH,accident_date) AS Months,
+SUM(number_of_casualties) AS PY_Casualties
+FROM road_accident
+WHERE YEAR(accident_date) = '2021'
+GROUP BY DATENAME(MONTH,accident_date);
+
+
+--Casualties by Road Type:
+SELECT road_type, SUM(number_of_casualties) AS Casualties
+FROM road_accident
+GROUP BY road_type
+ORDER BY Casualties DESC;
+
+
+--Casualties by Road Surface:
+SELECT 
+	CASE 
+		WHEN road_surface_conditions IN ('Flood over 3cm. deep','Wet or damp') THEN 'Wet'
+		WHEN road_surface_conditions IN ('Frost or ice','Snow') THEN 'Snow/Ice'
+		ELSE 'Dry'
+		END AS Road_Surface,
+	SUM(number_of_casualties) AS Casualties
+FROM road_accident
+GROUP BY 
+	CASE 
+		WHEN road_surface_conditions IN ('Flood over 3cm. deep','Wet or damp') THEN 'Wet'
+		WHEN road_surface_conditions IN ('Frost or ice','Snow') THEN 'Snow/Ice'
+		ELSE 'Dry'
+		END;
+
+ 
+--Casualties by Location/Area:
+SELECT urban_or_rural_area AS Area, 
+SUM(number_of_casualties) AS Casualties
+FROM road_accident
+GROUP BY urban_or_rural_area;
+
+
+--Casualties by Light Condition:
+SELECT 
+	CASE 
+		WHEN light_conditions IN ('Darkness - lights lit','Darkness - lights unlit','Darkness - lighting unknown','Darkness - no lighting') THEN 'Dark'
+		ELSE 'Day'
+		END AS Light_Condition,
+	SUM(number_of_casualties) AS Casualties
+FROM road_accident
+GROUP BY 
+	CASE 
+		WHEN light_conditions IN ('Darkness - lights lit','Darkness - lights unlit','Darkness - lighting unknown','Darkness - no lighting') THEN 'Dark'
+		ELSE 'Day'
+		END;
